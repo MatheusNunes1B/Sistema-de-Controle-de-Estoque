@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel — Arquivo Morto</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1C2128">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="layout-shell"></div>
+
+<template id="tpl-content">
+  <div class="max-w-6xl mx-auto">
+    <div class="flex items-center justify-between mb-6">
+      <div>
+        <h2 class="text-2xl font-bold text-[var(--graphite-950)]">Painel Geral</h2>
+        <p class="text-sm text-gray-500">Visão rápida do estoque do arquivo morto</p>
+      </div>
+      <a href="scanner.html" class="btn-amber hidden md:inline-block">📷 Escanear QR Code</a>
+    </div>
+
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-8">
+      <div class="card p-4">
+        <p class="text-xs text-gray-500 font-medium">Itens cadastrados</p>
+        <p id="stat-total" class="text-2xl md:text-3xl font-bold mt-1">—</p>
+      </div>
+      <div class="card p-4">
+        <p class="text-xs text-gray-500 font-medium">Unidades em estoque</p>
+        <p id="stat-quantidade" class="text-2xl md:text-3xl font-bold mt-1">—</p>
+      </div>
+      <div class="card p-4 border-[var(--danger)]/40">
+        <p class="text-xs text-[var(--danger)] font-semibold">Estoque baixo</p>
+        <p id="stat-baixo" class="text-2xl md:text-3xl font-bold mt-1 text-[var(--danger)]">—</p>
+      </div>
+      <div class="card p-4">
+        <p class="text-xs text-gray-500 font-medium">Movimentações (7 dias)</p>
+        <p id="stat-mov" class="text-2xl md:text-3xl font-bold mt-1">—</p>
+      </div>
+    </div>
+
+    <div class="card p-4 md:p-6 mb-8">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-bold text-[var(--danger)]">⚠ Itens com estoque baixo ou zerado</h3>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-gray-500 border-b">
+              <th class="py-2 pr-3">Código</th>
+              <th class="py-2 pr-3">Produto</th>
+              <th class="py-2 pr-3">Localização</th>
+              <th class="py-2 pr-3">Saldo</th>
+              <th class="py-2 pr-3">Mínimo</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-baixo-estoque"></tbody>
+        </table>
+        <p id="msg-vazio-baixo" class="text-sm text-gray-400 py-6 text-center hidden">Nenhum item abaixo do estoque mínimo. 🎉</p>
+      </div>
+    </div>
+
+    <div class="card p-4 md:p-6">
+      <h3 class="font-bold mb-3">Últimas movimentações</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full text-sm">
+          <thead>
+            <tr class="text-left text-gray-500 border-b">
+              <th class="py-2 pr-3">Data/Hora</th>
+              <th class="py-2 pr-3">Tipo</th>
+              <th class="py-2 pr-3">Código</th>
+              <th class="py-2 pr-3">Produto</th>
+              <th class="py-2 pr-3">Qtd.</th>
+              <th class="py-2 pr-3">Responsável</th>
+            </tr>
+          </thead>
+          <tbody id="tabela-ultimas-mov"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</template>
+
+<script src="js/api.js"></script>
+<script src="js/permissions.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/dashboard.js"></script>
+</body>
+</html>

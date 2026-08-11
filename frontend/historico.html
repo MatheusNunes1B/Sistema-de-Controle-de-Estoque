@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Histórico — Arquivo Morto</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="layout-shell"></div>
+
+<template id="tpl-content">
+  <div class="max-w-6xl mx-auto">
+    <h2 class="text-2xl font-bold mb-1">Histórico de Movimentações</h2>
+    <p class="text-sm text-gray-500 mb-6">Todas as entradas e saídas registradas no arquivo morto</p>
+
+    <div class="card p-4 mb-6 flex flex-wrap gap-3 items-end">
+      <div class="flex-1 min-w-[160px]">
+        <label class="text-xs text-gray-500 font-medium">Código</label>
+        <input id="filtro-codigo" placeholder="001.001.0042" class="font-mono-code border rounded-lg px-3 py-2 text-sm w-full">
+      </div>
+      <div class="flex-1 min-w-[160px]">
+        <label class="text-xs text-gray-500 font-medium">Nome do produto</label>
+        <input id="filtro-nome" class="border rounded-lg px-3 py-2 text-sm w-full">
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 font-medium">Família</label>
+        <select id="filtro-familia" class="border rounded-lg px-3 py-2 text-sm bg-white"><option value="">Todas</option></select>
+      </div>
+      <div>
+        <label class="text-xs text-gray-500 font-medium">Tipo</label>
+        <select id="filtro-movimento" class="border rounded-lg px-3 py-2 text-sm bg-white">
+          <option value="">Entradas e saídas</option>
+          <option value="entrada">Só entradas</option>
+          <option value="saida">Só saídas</option>
+        </select>
+      </div>
+      <button id="btn-filtrar-historico" class="btn-primary">Filtrar</button>
+    </div>
+
+    <div class="card p-4 md:p-6 overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead>
+          <tr class="text-left text-gray-500 border-b">
+            <th class="py-2 pr-3">Data/Hora</th>
+            <th class="py-2 pr-3">Tipo</th>
+            <th class="py-2 pr-3">Código</th>
+            <th class="py-2 pr-3">Produto</th>
+            <th class="py-2 pr-3">Qtd.</th>
+            <th class="py-2 pr-3">Saldo (antes → depois)</th>
+            <th class="py-2 pr-3">Responsável</th>
+            <th class="py-2 pr-3">Motivo</th>
+          </tr>
+        </thead>
+        <tbody id="tabela-historico"></tbody>
+      </table>
+      <p id="msg-vazio-historico" class="text-sm text-gray-400 py-8 text-center hidden">Nenhuma movimentação encontrada.</p>
+    </div>
+  </div>
+</template>
+
+<script src="js/api.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/historico.js"></script>
+</body>
+</html>

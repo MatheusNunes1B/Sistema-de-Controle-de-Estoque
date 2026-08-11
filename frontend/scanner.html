@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Escanear QR Code — Arquivo Morto</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#1C2128">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="layout-shell"></div>
+
+<template id="tpl-content">
+  <div class="max-w-md mx-auto">
+    <h2 class="text-xl font-bold mb-1">Escanear QR Code</h2>
+    <p class="text-sm text-gray-500 mb-4">Aponte a câmera para a etiqueta do item para dar entrada ou saída.</p>
+
+    <!-- Etapa 1: câmera -->
+    <div id="etapa-scanner">
+      <div id="reader" class="w-full"></div>
+      <div class="flex gap-2 mt-3">
+        <button id="btn-reiniciar-scanner" class="btn-primary flex-1 text-sm">Reiniciar câmera</button>
+      </div>
+      <div class="card p-4 mt-4">
+        <p class="text-xs text-gray-500 font-medium mb-2">Ou digite o código manualmente</p>
+        <form id="form-codigo-manual" class="flex gap-2">
+          <input id="codigo-manual" placeholder="000.000.0000" class="font-mono-code border rounded-lg px-3 py-2 text-sm flex-1">
+          <button class="btn-primary text-sm">Buscar</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Etapa 2: produto encontrado + formulário -->
+    <div id="etapa-produto" class="hidden">
+      <div class="card p-4 mb-4">
+        <div class="flex items-center justify-between mb-1">
+          <span class="stamp-code text-sm" id="prod-codigo"></span>
+          <button id="btn-escanear-outro" class="text-xs text-gray-500 underline">Escanear outro</button>
+        </div>
+        <h3 id="prod-nome" class="font-bold text-lg mt-2"></h3>
+        <p class="text-sm text-gray-500" id="prod-localizacao"></p>
+        <p class="text-sm mt-2">Saldo atual: <span id="prod-saldo" class="font-bold"></span></p>
+      </div>
+
+      <div class="flex gap-2 mb-4">
+        <button id="btn-modo-entrada" class="flex-1 py-2 rounded-lg font-semibold text-sm border-2 border-[var(--ok)] text-[var(--ok)]">↓ Entrada</button>
+        <button id="btn-modo-saida" class="flex-1 py-2 rounded-lg font-semibold text-sm border-2 border-[var(--danger)] text-[var(--danger)]">↑ Saída</button>
+      </div>
+
+      <!-- Formulário de ENTRADA -->
+      <form id="form-entrada" class="hidden card p-4 flex flex-col gap-3">
+        <h4 class="font-bold text-[var(--ok)]">Confirmar Entrada</h4>
+        <div>
+          <label class="text-xs text-gray-500 font-medium">Quantidade adicionada</label>
+          <input required type="number" min="1" id="entrada-quantidade" class="border rounded-lg px-3 py-2 text-sm w-full">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 font-medium">Responsável</label>
+          <input required id="entrada-responsavel" class="border rounded-lg px-3 py-2 text-sm w-full" placeholder="Seu nome">
+        </div>
+        <button type="submit" class="btn-amber">Confirmar Entrada</button>
+      </form>
+
+      <!-- Formulário de SAÍDA -->
+      <form id="form-saida" class="hidden card p-4 flex flex-col gap-3">
+        <h4 class="font-bold text-[var(--danger)]">Confirmar Retirada</h4>
+        <div>
+          <label class="text-xs text-gray-500 font-medium">Quantidade retirada</label>
+          <input required type="number" min="1" id="saida-quantidade" class="border rounded-lg px-3 py-2 text-sm w-full">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 font-medium">Motivo da retirada</label>
+          <input required id="saida-motivo" class="border rounded-lg px-3 py-2 text-sm w-full" placeholder="Ex: uso em auditoria">
+        </div>
+        <div>
+          <label class="text-xs text-gray-500 font-medium">Solicitante/Responsável</label>
+          <input required id="saida-responsavel" class="border rounded-lg px-3 py-2 text-sm w-full" placeholder="Seu nome">
+        </div>
+        <button type="submit" class="btn-danger">Confirmar Retirada</button>
+      </form>
+    </div>
+
+    <!-- Etapa 3: confirmação -->
+    <div id="etapa-sucesso" class="hidden card p-6 text-center">
+      <p class="text-4xl mb-2">✅</p>
+      <h3 class="font-bold text-lg" id="sucesso-titulo"></h3>
+      <p class="text-sm text-gray-500 mt-1" id="sucesso-detalhe"></p>
+      <button id="btn-nova-leitura" class="btn-primary mt-4 w-full">Nova leitura</button>
+    </div>
+  </div>
+</template>
+
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="js/api.js"></script>
+<script src="js/permissions.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/scanner.js"></script>
+</body>
+</html>

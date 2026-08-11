@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Famílias & Tipos — Arquivo Morto</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="layout-shell"></div>
+
+<template id="tpl-content">
+  <div class="max-w-5xl mx-auto grid md:grid-cols-2 gap-6">
+
+    <!-- FAMÍLIAS -->
+    <section class="card p-4 md:p-6">
+      <h2 class="font-bold text-lg mb-1">Famílias (FFF)</h2>
+      <p class="text-xs text-gray-500 mb-4">Grupos base, ex: 001 - Documentos</p>
+
+      <form id="form-familia" class="flex flex-col gap-3 mb-5">
+        <input type="hidden" id="familia-id">
+        <input required id="familia-nome" placeholder="Nome da família" class="border rounded-lg px-3 py-2 text-sm">
+        <input id="familia-descricao" placeholder="Descrição (opcional)" class="border rounded-lg px-3 py-2 text-sm">
+        <div class="flex gap-2">
+          <button type="submit" class="btn-primary flex-1">Salvar Família</button>
+          <button type="button" id="btn-cancelar-familia" class="hidden text-sm text-gray-500 underline">Cancelar edição</button>
+        </div>
+      </form>
+
+      <div id="lista-familias" class="flex flex-col gap-2"></div>
+    </section>
+
+    <!-- TIPOS -->
+    <section class="card p-4 md:p-6">
+      <h2 class="font-bold text-lg mb-1">Tipos (TTT)</h2>
+      <p class="text-xs text-gray-500 mb-4">Subgrupos dentro de uma família, ex: 001 - Caixas de Arquivo</p>
+
+      <form id="form-tipo" class="flex flex-col gap-3 mb-5">
+        <input type="hidden" id="tipo-id">
+        <select required id="tipo-familia" class="border rounded-lg px-3 py-2 text-sm bg-white">
+          <option value="">Selecione a família…</option>
+        </select>
+        <input required id="tipo-nome" placeholder="Nome do tipo" class="border rounded-lg px-3 py-2 text-sm">
+        <input id="tipo-descricao" placeholder="Descrição (opcional)" class="border rounded-lg px-3 py-2 text-sm">
+        <div class="flex gap-2">
+          <button type="submit" class="btn-primary flex-1">Salvar Tipo</button>
+          <button type="button" id="btn-cancelar-tipo" class="hidden text-sm text-gray-500 underline">Cancelar edição</button>
+        </div>
+      </form>
+
+      <div class="mb-2">
+        <select id="filtro-tipo-familia" class="border rounded-lg px-3 py-2 text-sm bg-white w-full">
+          <option value="">Todas as famílias</option>
+        </select>
+      </div>
+      <div id="lista-tipos" class="flex flex-col gap-2"></div>
+    </section>
+  </div>
+</template>
+
+<script src="js/api.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/familias.js"></script>
+</body>
+</html>

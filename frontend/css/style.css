@@ -1,0 +1,136 @@
+/* ===========================================================
+   Arquivo Morto — estilos complementares ao Tailwind (CDN)
+   Paleta: grafite (base) + âmbar de sinalização (ação/atenção)
+   =========================================================== */
+
+:root {
+  --graphite-950: #14171B;
+  --graphite-900: #1C2128;
+  --graphite-800: #262B33;
+  --graphite-700: #363D48;
+  --paper: #F6F5F1;
+  --amber: #E8A33D;
+  --amber-dark: #C77F1F;
+  --ok: #3E7C59;
+  --danger: #C1443C;
+}
+
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  background: var(--paper);
+}
+
+.font-mono-code {
+  font-family: 'IBM Plex Mono', 'Courier New', monospace;
+  letter-spacing: 0.03em;
+}
+
+/* Estampa o código como se fosse carimbado numa etiqueta */
+.stamp-code {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  border: 2px solid currentColor;
+  border-radius: 4px;
+  padding: 0.15rem 0.6rem;
+  display: inline-block;
+  transform: rotate(-0.6deg);
+}
+
+.sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.9rem;
+  border-radius: 0.5rem;
+  color: #C9CDD3;
+  font-size: 0.92rem;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.sidebar-link:hover { background: var(--graphite-800); color: #fff; }
+.sidebar-link.active { background: var(--amber); color: var(--graphite-950); }
+
+.card {
+  background: #fff;
+  border: 1px solid #E7E4DC;
+  border-radius: 0.75rem;
+}
+
+.btn-primary {
+  background: var(--graphite-900);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.btn-primary:hover { background: var(--graphite-700); }
+.btn-primary:active { transform: scale(0.98); }
+
+.btn-amber {
+  background: var(--amber);
+  color: var(--graphite-950);
+  font-weight: 700;
+  border-radius: 0.5rem;
+  padding: 0.6rem 1.1rem;
+  transition: background 0.15s ease, transform 0.1s ease;
+}
+.btn-amber:hover { background: var(--amber-dark); }
+.btn-amber:active { transform: scale(0.98); }
+
+.btn-danger {
+  background: var(--danger);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0.5rem;
+  padding: 0.6rem 1.1rem;
+}
+
+.badge-baixo {
+  background: #FBE6E4;
+  color: var(--danger);
+  font-weight: 700;
+  border: 1px solid #F0B4AE;
+}
+.badge-ok {
+  background: #E4F0E8;
+  color: var(--ok);
+  font-weight: 600;
+  border: 1px solid #B9DAC4;
+}
+
+.row-baixo-estoque { background: #FEF7F6; }
+.row-baixo-estoque:hover { background: #FDECEA; }
+
+/* Scanner: moldura do vídeo da câmera */
+#reader {
+  border-radius: 0.75rem;
+  overflow: hidden;
+  border: 2px solid var(--graphite-800);
+}
+
+/* Mobile bottom nav (usado no scanner.html) */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  background: var(--graphite-950);
+  border-top: 1px solid var(--graphite-800);
+}
+
+@media print {
+  body * { visibility: hidden; }
+  #area-impressao, #area-impressao * { visibility: visible; }
+  #area-impressao {
+    position: absolute; top: 0; left: 0; width: 100%;
+  }
+  .no-print { display: none !important; }
+}
+
+.etiqueta {
+  border: 1.5px dashed #999;
+  border-radius: 6px;
+  padding: 10px;
+  width: 260px;
+  break-inside: avoid;
+}

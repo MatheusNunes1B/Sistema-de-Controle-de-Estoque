@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Imprimir Etiquetas — Arquivo Morto</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+<div id="layout-shell"></div>
+
+<template id="tpl-content">
+  <div class="max-w-5xl mx-auto">
+    <div class="flex flex-wrap items-center justify-between gap-3 mb-6 no-print">
+      <div>
+        <h2 class="text-2xl font-bold">Imprimir Etiquetas</h2>
+        <p class="text-sm text-gray-500">Selecione os produtos e gere um layout pronto para impressão com QR Code</p>
+      </div>
+      <button id="btn-imprimir" class="btn-amber">🖨️ Imprimir selecionadas</button>
+    </div>
+
+    <div class="card p-4 mb-6 no-print">
+      <input id="busca-etiqueta" placeholder="Buscar por nome ou código…" class="border rounded-lg px-3 py-2 text-sm w-full mb-3">
+      <div id="lista-selecao" class="max-h-72 overflow-y-auto flex flex-col gap-1"></div>
+    </div>
+
+    <div id="area-impressao" class="flex flex-wrap gap-4 justify-start"></div>
+  </div>
+</template>
+
+<script src="js/api.js"></script>
+<script src="js/layout.js"></script>
+<script src="js/etiquetas.js"></script>
+</body>
+</html>
