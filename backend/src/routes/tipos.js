@@ -1,7 +1,8 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
-const { pad } = require('../utils/codigo');
+const { textoObrigatorio, textoOpcional } = require('../utils/codigo');
+const { dadoUnico, responderErroBanco } = require('../utils/resposta');
 
 // GET /api/tipos?familia_id=xxx -> lista tipos (opcionalmente filtrados por família)
 router.get('/', async (req, res) => {
@@ -18,51 +19,45 @@ router.get('/', async (req, res) => {
 
 // POST /api/tipos -> cria tipo com próximo código disponível DENTRO da família (001, 002...)
 router.post('/', async (req, res) => {
-  const { familia_id, nome, descricao } = req.body;
+  const { familia_id } = req.body;
+  const nome = textoObrigatorio(req.body.nome, 120);
+  const descricao = textoOpcional(req.body.descricao);
   if (!familia_id || !nome) {
     return res.status(400).json({ error: 'Os campos "familia_id" e "nome" são obrigatórios.' });
   }
-
-  const { data: ultimos, error: errBusca } = await supabase
-    .from('tipos')
-    .select('codigo')
-    .eq('familia_id', familia_id)
-    .order('codigo', { ascending: false })
-    .limit(1);
-
-  if (errBusca) return res.status(500).json({ error: errBusca.message });
-
-  const proximoNumero = ultimos.length ? parseInt(ultimos[0].codigo, 10) + 1 : 1;
-  const codigo = pad(proximoNumero, 3);
-
-  const { data, error } = await supabase
-    .from('tipos')
-    .insert([{ familia_id, codigo, nome, descricao }])
-    .select()
-    .single();
-
-  if (error) return res.status(500).json({ error: error.message });
-  res.status(201).json(data);
+  if (descricao === undefined) return res.status(400).json({ error: 'A descricao deve ter ate 500 caracteres.' });
+  const { data, error } = await supabase.rpc('criar_tipo', {
+    p_familia_id: familia_id,
+    p_nome: nome,
+    p_descricao: descricao
+  });
+  if (error) return responderErroBanco(res, error, 'Nao foi possivel criar o tipo.');
+  res.status(201).json(dadoUnico(data));
 });
 
 // PUT /api/tipos/:id
 router.put('/:id', async (req, res) => {
-  const { nome, descricao } = req.body;
+  const nome = textoObrigatorio(req.body.nome, 120);
+  const descricao = textoOpcional(req.body.descricao);
+  if (!nome || descricao === undefined) {
+    return res.status(400).json({ error: 'Informe um nome valido e uma descricao de ate 500 caracteres.' });
+  }
   const { data, error } = await supabase
     .from('tipos')
     .update({ nome, descricao })
     .eq('id', req.params.id)
     .select()
-    .single();
+    .maybeSingle();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) return responderErroBanco(res, error, 'Nao foi possivel atualizar o tipo.');
+  if (!data) return res.status(404).json({ error: 'Tipo nao encontrado.' });
   res.json(data);
 });
 
 // DELETE /api/tipos/:id
 router.delete('/:id', async (req, res) => {
   const { error } = await supabase.from('tipos').delete().eq('id', req.params.id);
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) return responderErroBanco(res, error, 'Nao foi possivel excluir o tipo.');
   res.status(204).send();
 });
 

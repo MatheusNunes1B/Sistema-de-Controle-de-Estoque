@@ -13,7 +13,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
       familias = await api.listarFamilias();
       renderFamilias();
-      const optionsHtml = familias.map((f) => `<option value="${f.id}">${f.codigo} — ${f.nome}</option>`).join('');
+      const optionsHtml = familias.map((f) => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.codigo)} — ${escapeHtml(f.nome)}</option>`).join('');
       selectTipoFamilia.innerHTML = `<option value="">Selecione a família…</option>${optionsHtml}`;
       selectFiltroFamilia.innerHTML = `<option value="">Todas as famílias</option>${optionsHtml}`;
     } catch (err) {
@@ -24,19 +24,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderFamilias() {
     const container = document.getElementById('lista-familias');
     if (familias.length === 0) {
-      container.innerHTML = '<p class="text-sm text-gray-400 py-4 text-center">Nenhuma família cadastrada.</p>';
+      container.innerHTML = '<p class="py-6 text-center text-sm text-slate-400">Nenhuma família cadastrada.</p>';
       return;
     }
     container.innerHTML = familias.map((f) => `
-      <div class="flex items-center justify-between border rounded-lg px-3 py-2">
+      <div class="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-3 transition duration-200 hover:-translate-y-0.5 hover:border-brand-400/50 hover:bg-white hover:shadow-sm">
         <div>
-          <span class="stamp-code text-xs text-[var(--graphite-900)]">${f.codigo}</span>
-          <span class="font-semibold ml-2">${f.nome}</span>
-          ${f.descricao ? `<p class="text-xs text-gray-500">${f.descricao}</p>` : ''}
+          <span class="inline-flex rotate-[-0.6deg] rounded-md border-2 border-slate-800 px-2 py-0.5 font-mono text-[10px] font-bold tracking-[0.12em]">${escapeHtml(f.codigo)}</span>
+          <span class="ml-2 font-semibold text-slate-900">${escapeHtml(f.nome)}</span>
+          ${f.descricao ? `<p class="mt-1 text-xs text-slate-500">${escapeHtml(f.descricao)}</p>` : ''}
         </div>
         <div class="flex gap-3 text-sm shrink-0">
-          <button data-editar="${f.id}" class="text-[var(--graphite-900)] font-medium">Editar</button>
-          <button data-excluir="${f.id}" class="text-[var(--danger)] font-medium">Excluir</button>
+          <button data-editar="${f.id}" class="rounded-lg px-2 py-1 font-semibold text-slate-600 transition hover:bg-slate-100">Editar</button>
+          <button data-excluir="${f.id}" class="rounded-lg px-2 py-1 font-semibold text-red-600 transition hover:bg-red-50">Excluir</button>
         </div>
       </div>
     `).join('');
@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }));
 
     container.querySelectorAll('[data-excluir]').forEach((btn) => btn.addEventListener('click', async () => {
-      if (!confirm('Excluir esta família? Isso também remove os tipos e produtos vinculados a ela.')) return;
+      if (!confirm('Excluir esta família? A exclusão será impedida se houver tipos ou produtos vinculados.')) return;
       try {
         await api.excluirFamilia(btn.dataset.excluir);
         mostrarToast('Família excluída.');
@@ -108,19 +108,19 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderTipos() {
     const container = document.getElementById('lista-tipos');
     if (tipos.length === 0) {
-      container.innerHTML = '<p class="text-sm text-gray-400 py-4 text-center">Nenhum tipo cadastrado.</p>';
+      container.innerHTML = '<p class="py-6 text-center text-sm text-slate-400">Nenhum tipo cadastrado.</p>';
       return;
     }
     container.innerHTML = tipos.map((t) => `
-      <div class="flex items-center justify-between border rounded-lg px-3 py-2">
+      <div class="group flex items-center justify-between rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-3 transition duration-200 hover:-translate-y-0.5 hover:border-brand-400/50 hover:bg-white hover:shadow-sm">
         <div>
-          <span class="stamp-code text-xs text-[var(--graphite-900)]">${t.familias?.codigo || '???'}.${t.codigo}</span>
-          <span class="font-semibold ml-2">${t.nome}</span>
-          <p class="text-xs text-gray-500">Família: ${t.familias?.nome || '—'}</p>
+          <span class="inline-flex rotate-[-0.6deg] rounded-md border-2 border-slate-800 px-2 py-0.5 font-mono text-[10px] font-bold tracking-[0.12em]">${escapeHtml(t.familias?.codigo || '???')}.${escapeHtml(t.codigo)}</span>
+          <span class="ml-2 font-semibold text-slate-900">${escapeHtml(t.nome)}</span>
+          <p class="mt-1 text-xs text-slate-500">Família: ${escapeHtml(t.familias?.nome || '—')}</p>
         </div>
         <div class="flex gap-3 text-sm shrink-0">
-          <button data-editar="${t.id}" class="text-[var(--graphite-900)] font-medium">Editar</button>
-          <button data-excluir="${t.id}" class="text-[var(--danger)] font-medium">Excluir</button>
+          <button data-editar="${t.id}" class="rounded-lg px-2 py-1 font-semibold text-slate-600 transition hover:bg-slate-100">Editar</button>
+          <button data-excluir="${t.id}" class="rounded-lg px-2 py-1 font-semibold text-red-600 transition hover:bg-red-50">Excluir</button>
         </div>
       </div>
     `).join('');
@@ -136,7 +136,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }));
 
     container.querySelectorAll('[data-excluir]').forEach((btn) => btn.addEventListener('click', async () => {
-      if (!confirm('Excluir este tipo? Isso também remove os produtos vinculados a ele.')) return;
+      if (!confirm('Excluir este tipo? A exclusão será impedida se houver produtos vinculados.')) return;
       try {
         await api.excluirTipo(btn.dataset.excluir);
         mostrarToast('Tipo excluído.');

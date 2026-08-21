@@ -1,9 +1,12 @@
 const express = require('express');
 const router = express.Router();
 const supabase = require('../config/supabase');
-const { pad, validarCodigoCompleto } = require('../utils/codigo');
+const { pad, validarCodigoCompleto, lerInteiro, textoObrigatorio, textoOpcional } = require('../utils/codigo');
+const { dadoUnico, responderErroBanco } = require('../utils/resposta');
 
-const SELECT_COMPLETO = '*, familias(nome), tipos(nome)';
+// O banco pode manter uma FK legada em tipo_id alem da FK composta atual.
+// Informar a constraint remove a ambiguidade do relacionamento no PostgREST.
+const SELECT_COMPLETO = '*, familias(nome), tipos!produtos_tipo_da_familia_fk(nome)';
 
 // GET /api/produtos -> lista com filtros opcionais
 // query params: q (busca por nome ou código), familia_id, tipo_id, baixo_estoque=true
@@ -14,7 +17,10 @@ router.get('/', async (req, res) => {
 
   if (familia_id) query = query.eq('familia_id', familia_id);
   if (tipo_id) query = query.eq('tipo_id', tipo_id);
-  if (q) query = query.or(`nome.ilike.%${q}%,codigo_completo.ilike.%${q}%`);
+  if (q) {
+    const termo = String(q).trim().slice(0, 100).replace(/[,()*%_\\]/g, '');
+    if (termo) query = query.or(`nome.ilike.%${termo}%,codigo_completo.ilike.%${termo}%`);
+  }
 
   const { data, error } = await query;
   if (error) return res.status(500).json({ error: error.message });
@@ -61,58 +67,69 @@ router.get('/codigo/:codigo', async (req, res) => {
 
 // POST /api/produtos -> cadastra produto e gera automaticamente o código FFF.TTT.PPPP
 router.post('/', async (req, res) => {
-  const { familia_id, tipo_id, nome, descricao, localizacao, quantidade, estoque_minimo } = req.body;
+  const { familia_id, tipo_id } = req.body;
+  const nome = textoObrigatorio(req.body.nome, 160);
+  const descricao = textoOpcional(req.body.descricao, 1000);
+  const localizacao = textoOpcional(req.body.localizacao, 250);
+  const quantidade = lerInteiro(req.body.quantidade ?? 0);
+  const estoque_minimo = lerInteiro(req.body.estoque_minimo ?? 0);
 
   if (!familia_id || !tipo_id || !nome) {
     return res.status(400).json({ error: 'Os campos "familia_id", "tipo_id" e "nome" são obrigatórios.' });
   }
-
-  try {
-    const { familia, tipo, produto_codigo } = await gerarProximoCodigoProduto(familia_id, tipo_id);
-
-    const { data, error } = await supabase
-      .from('produtos')
-      .insert([{
-        familia_id,
-        tipo_id,
-        familia_codigo: familia.codigo,
-        tipo_codigo: tipo.codigo,
-        produto_codigo,
-        nome,
-        descricao: descricao || null,
-        localizacao: localizacao || null,
-        quantidade: Number(quantidade) || 0,
-        estoque_minimo: Number(estoque_minimo) || 0
-      }])
-      .select(SELECT_COMPLETO)
-      .single();
-
-    if (error) return res.status(500).json({ error: error.message });
-    res.status(201).json(data);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  if (descricao === undefined || localizacao === undefined || quantidade === null || estoque_minimo === null) {
+    return res.status(400).json({ error: 'Revise descricao, localizacao, quantidade e estoque minimo.' });
   }
+
+  const { data: criado, error } = await supabase.rpc('criar_produto', {
+    p_familia_id: familia_id,
+    p_tipo_id: tipo_id,
+    p_nome: nome,
+    p_descricao: descricao,
+    p_localizacao: localizacao,
+    p_quantidade: quantidade,
+    p_estoque_minimo: estoque_minimo
+  });
+  if (error) return responderErroBanco(res, error, 'Nao foi possivel criar o produto.');
+
+  const produto = dadoUnico(criado);
+  const { data: completo, error: erroBusca } = await supabase
+    .from('produtos').select(SELECT_COMPLETO).eq('id', produto.id).single();
+  if (erroBusca) return responderErroBanco(res, erroBusca, 'Produto criado, mas nao foi possivel consulta-lo.');
+  res.status(201).json(completo);
 });
 
 // PUT /api/produtos/:id -> edita dados cadastrais (não altera o código nem a quantidade)
 router.put('/:id', async (req, res) => {
-  const { nome, descricao, localizacao, estoque_minimo } = req.body;
+  const nome = textoObrigatorio(req.body.nome, 160);
+  const descricao = textoOpcional(req.body.descricao, 1000);
+  const localizacao = textoOpcional(req.body.localizacao, 250);
+  const estoque_minimo = lerInteiro(req.body.estoque_minimo);
+  if (!nome || descricao === undefined || localizacao === undefined || estoque_minimo === null) {
+    return res.status(400).json({ error: 'Revise os dados do produto.' });
+  }
 
   const { data, error } = await supabase
     .from('produtos')
     .update({ nome, descricao, localizacao, estoque_minimo })
     .eq('id', req.params.id)
     .select(SELECT_COMPLETO)
-    .single();
+    .maybeSingle();
 
-  if (error) return res.status(500).json({ error: error.message });
+  if (error) return responderErroBanco(res, error, 'Nao foi possivel atualizar o produto.');
+  if (!data) return res.status(404).json({ error: 'Produto nao encontrado.' });
   res.json(data);
 });
 
 // DELETE /api/produtos/:id
 router.delete('/:id', async (req, res) => {
   const { error } = await supabase.from('produtos').delete().eq('id', req.params.id);
-  if (error) return res.status(500).json({ error: error.message });
+  if (error?.code === '23503') {
+    return res.status(409).json({
+      error: 'Este produto possui movimentacoes registradas e nao pode ser excluido, pois o historico precisa ser preservado.'
+    });
+  }
+  if (error) return responderErroBanco(res, error, 'Nao foi possivel excluir o produto.');
   res.status(204).send();
 });
 
@@ -123,7 +140,7 @@ async function gerarProximoCodigoProduto(familia_id, tipo_id) {
   if (errFamilia || !familia) throw new Error('Família não encontrada.');
 
   const { data: tipo, error: errTipo } = await supabase
-    .from('tipos').select('codigo').eq('id', tipo_id).single();
+    .from('tipos').select('codigo').eq('id', tipo_id).eq('familia_id', familia_id).single();
   if (errTipo || !tipo) throw new Error('Tipo não encontrado.');
 
   const { data: ultimos, error: errBusca } = await supabase

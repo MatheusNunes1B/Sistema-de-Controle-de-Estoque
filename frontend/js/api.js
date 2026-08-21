@@ -3,17 +3,10 @@
 // Se o backend estiver em outro endereço, ajuste API_BASE_URL
 // (por exemplo, ao publicar em produção).
 // ===========================================================
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-  ? 'http://localhost:3000/api'
-  : '/api';
+const API_BASE_URL = '/api';
 
 async function apiRequest(path, options = {}) {
-  const token = localStorage.getItem('token');
   const headers = { 'Content-Type': 'application/json' };
-  
-  if (token) {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
 
   const res = await fetch(`${API_BASE_URL}${path}`, {
     ...options,
@@ -27,7 +20,7 @@ async function apiRequest(path, options = {}) {
   }
 
   if (!res.ok) {
-    const mensagem = (body && body.error) ? body.error : `Erro ${res.status} ao chamar ${path}`;
+    const mensagem = body?.error || body?.erro || `Erro ${res.status} ao chamar ${path}`;
     throw new Error(mensagem);
   }
   return body;
