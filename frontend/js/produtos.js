@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     familias = await api.listarFamilias();
     todosOsTipos = await api.listarTipos();
 
-    const opcoesFamilia = familias.map((f) => `<option value="${f.id}">${f.codigo} — ${f.nome}</option>`).join('');
+    const opcoesFamilia = familias.map((f) => `<option value="${escapeHtml(f.id)}">${escapeHtml(f.codigo)} — ${escapeHtml(f.nome)}</option>`).join('');
     selectFamilia.innerHTML = `<option value="">Selecione…</option>${opcoesFamilia}`;
     filtroFamilia.innerHTML = `<option value="">Todas</option>${opcoesFamilia}`;
   }
@@ -26,14 +26,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     const tiposDaFamilia = todosOsTipos.filter((t) => t.familia_id === selectFamilia.value);
     selectTipo.disabled = tiposDaFamilia.length === 0;
     selectTipo.innerHTML = tiposDaFamilia.length
-      ? `<option value="">Selecione…</option>${tiposDaFamilia.map((t) => `<option value="${t.id}">${t.codigo} — ${t.nome}</option>`).join('')}`
+      ? `<option value="">Selecione…</option>${tiposDaFamilia.map((t) => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.codigo)} — ${escapeHtml(t.nome)}</option>`).join('')}`
       : '<option value="">Cadastre um tipo para esta família</option>';
     atualizarPreviaCodigo();
   });
 
   filtroFamilia.addEventListener('change', () => {
     const tiposDaFamilia = todosOsTipos.filter((t) => t.familia_id === filtroFamilia.value);
-    filtroTipo.innerHTML = `<option value="">Todos</option>${tiposDaFamilia.map((t) => `<option value="${t.id}">${t.codigo} — ${t.nome}</option>`).join('')}`;
+    filtroTipo.innerHTML = `<option value="">Todos</option>${tiposDaFamilia.map((t) => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.codigo)} — ${escapeHtml(t.nome)}</option>`).join('')}`;
   });
 
   selectTipo.addEventListener('change', atualizarPreviaCodigo);
@@ -85,24 +85,24 @@ document.addEventListener('DOMContentLoaded', async () => {
     tabela.innerHTML = produtos.map((p) => {
       const baixo = p.quantidade <= p.estoque_minimo;
       return `
-      <tr class="border-b last:border-0 ${baixo ? 'row-baixo-estoque' : ''}">
-        <td class="py-2 pr-3 font-mono-code">${p.codigo_completo}</td>
+      <tr class="border-b border-slate-100 transition hover:bg-slate-50 last:border-0 ${baixo ? 'bg-red-50/50' : ''}">
+        <td class="py-3 pr-4 font-mono text-xs font-semibold text-slate-700">${escapeHtml(p.codigo_completo)}</td>
         <td class="py-2 pr-3">
-          <p class="font-medium">${p.nome}</p>
-          <p class="text-xs text-gray-500">${p.familias?.nome || ''} / ${p.tipos?.nome || ''}</p>
+          <p class="font-semibold text-slate-900">${escapeHtml(p.nome)}</p>
+          <p class="text-xs text-slate-500">${escapeHtml(p.familias?.nome || '')} / ${escapeHtml(p.tipos?.nome || '')}</p>
         </td>
-        <td class="py-2 pr-3 text-gray-500">${p.localizacao || '—'}</td>
+        <td class="py-3 pr-4 text-slate-500">${escapeHtml(p.localizacao || '—')}</td>
         <td class="py-2 pr-3">
-          <span class="px-2 py-0.5 rounded text-xs ${baixo ? 'badge-baixo' : 'badge-ok'}">${p.quantidade}</span>
+          <span class="rounded-full border px-2.5 py-1 text-xs font-bold ${baixo ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}">${p.quantidade}</span>
         </td>
         <td class="py-2 pr-3 text-gray-500">${p.estoque_minimo}</td>
         <td class="py-2 pr-3">
-          <button type="button" data-qr="${p.codigo_completo}" data-nome="${p.nome}" class="text-[var(--graphite-900)] font-medium">Ver</button>
+          <button type="button" data-qr="${escapeHtml(p.codigo_completo)}" data-nome="${escapeHtml(p.nome)}" class="rounded-lg px-2 py-1 font-semibold text-sky-700 transition hover:bg-sky-50">Ver QR</button>
         </td>
         <td class="py-2 pr-3">
           <div class="flex gap-3">
-            <button type="button" data-editar="${p.id}" class="text-[var(--graphite-900)] font-medium">Editar</button>
-            <button type="button" data-excluir="${p.id}" class="text-[var(--danger)] font-medium">Excluir</button>
+            <button type="button" data-editar="${p.id}" class="rounded-lg px-2 py-1 font-semibold text-slate-700 transition hover:bg-slate-100">Editar</button>
+            <button type="button" data-excluir="${p.id}" class="rounded-lg px-2 py-1 font-semibold text-red-600 transition hover:bg-red-50">Excluir</button>
           </div>
         </td>
       </tr>`;
@@ -117,7 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }));
     tabela.querySelectorAll('[data-editar]').forEach((btn) => btn.addEventListener('click', () => abrirModalProduto(btn.dataset.editar, produtos)));
     tabela.querySelectorAll('[data-excluir]').forEach((btn) => btn.addEventListener('click', async () => {
-      if (!confirm('Excluir este produto? Esta ação não pode ser desfeita.')) return;
+      if (!confirm('Excluir este produto? A exclusão só será permitida se ele ainda não possuir movimentações registradas.')) return;
       try {
         await api.excluirProduto(btn.dataset.excluir);
         mostrarToast('Produto excluído.');
@@ -129,32 +129,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   async function ensureQrCodeLibrary() {
-    if (window.QRCode && typeof QRCode.toCanvas === 'function') {
+    if (typeof window.QRCode === 'function') {
       return;
     }
-
-    if (document.getElementById('qrcode-lib')) {
-      return new Promise((resolve, reject) => {
-        const script = document.getElementById('qrcode-lib');
-        script.addEventListener('load', resolve);
-        script.addEventListener('error', () => reject(new Error('Não foi possível carregar a biblioteca de QR Code.')));
-      });
-    }
-
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.id = 'qrcode-lib';
-      script.src = 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js?t=' + Date.now();
-      script.onload = () => {
-        if (window.QRCode && typeof QRCode.toCanvas === 'function') {
-          resolve();
-        } else {
-          reject(new Error('Biblioteca de QR Code carregada, mas não está disponível.'));
-        }
-      };
-      script.onerror = () => reject(new Error('Não foi possível carregar a biblioteca de QR Code.'));
-      document.body.appendChild(script);
-    });
+    throw new Error('O gerador de QR Code não foi inicializado. Atualize a página.');
   }
 
   // ---------------- MODAL DE CADASTRO/EDIÇÃO ----------------
@@ -177,7 +155,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     selectFamilia.value = p.familia_id;
     selectFamilia.disabled = true; // não é permitido trocar família/tipo depois de gerado o código
     const tiposDaFamilia = todosOsTipos.filter((t) => t.familia_id === p.familia_id);
-    selectTipo.innerHTML = tiposDaFamilia.map((t) => `<option value="${t.id}">${t.codigo} — ${t.nome}</option>`).join('');
+    selectTipo.innerHTML = tiposDaFamilia.map((t) => `<option value="${escapeHtml(t.id)}">${escapeHtml(t.codigo)} — ${escapeHtml(t.nome)}</option>`).join('');
     selectTipo.value = p.tipo_id;
     selectTipo.disabled = true;
     document.getElementById('produto-nome').value = p.nome;
@@ -217,6 +195,11 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         const criado = await api.criarProduto(dados);
         mostrarToast(`Produto criado com o código ${criado.codigo_completo}.`);
+        modalProduto.classList.add('hidden');
+        document.getElementById('produto-quantidade').disabled = false;
+        await carregarProdutos();
+        await abrirModalQr(criado.codigo_completo, criado.nome);
+        return;
       }
       modalProduto.classList.add('hidden');
       document.getElementById('produto-quantidade').disabled = false;
@@ -234,13 +217,15 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('qr-nome-produto').textContent = nome;
     const container = document.getElementById('qr-canvas-container');
     container.innerHTML = '';
-    const canvas = document.createElement('canvas');
-    canvas.id = 'qr-canvas';
-    container.appendChild(canvas);
     modalQr.classList.remove('hidden');
 
     try {
-      QRCode.toCanvas(canvas, codigo, { width: 200, margin: 1 });
+      new QRCode(container, {
+        text: codigo,
+        width: 200,
+        height: 200,
+        correctLevel: QRCode.CorrectLevel.M
+      });
     } catch (err) {
       console.error('Erro ao gerar QR Code:', err);
       container.innerHTML = '<div class="text-sm text-red-600">Erro ao gerar QR Code. Recarregue a página.</div>';

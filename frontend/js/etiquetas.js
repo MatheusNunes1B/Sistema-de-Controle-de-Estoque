@@ -6,32 +6,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   const selecionados = new Set();
 
   async function ensureQrCodeLibrary() {
-    if (window.QRCode && typeof QRCode.toCanvas === 'function') {
+    if (typeof window.QRCode === 'function') {
       return;
     }
-
-    if (document.getElementById('qrcode-lib')) {
-      return new Promise((resolve, reject) => {
-        const script = document.getElementById('qrcode-lib');
-        script.addEventListener('load', resolve);
-        script.addEventListener('error', () => reject(new Error('Não foi possível carregar a biblioteca de QR Code.')));
-      });
-    }
-
-    return new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.id = 'qrcode-lib';
-      script.src = 'https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js?t=' + Date.now();
-      script.onload = () => {
-        if (window.QRCode && typeof QRCode.toCanvas === 'function') {
-          resolve();
-        } else {
-          reject(new Error('Biblioteca de QR Code carregada, mas não está disponível.'));
-        }
-      };
-      script.onerror = () => reject(new Error('Não foi possível carregar a biblioteca de QR Code.'));
-      document.body.appendChild(script);
-    });
+    throw new Error('O gerador de QR Code não foi inicializado. Atualize a página.');
   }
 
   try {
@@ -45,14 +23,14 @@ document.addEventListener('DOMContentLoaded', async () => {
   function renderLista(lista) {
     const container = document.getElementById('lista-selecao');
     if (lista.length === 0) {
-      container.innerHTML = '<p class="text-sm text-gray-400 py-4 text-center">Nenhum produto cadastrado ainda.</p>';
+      container.innerHTML = '<p class="py-6 text-center text-sm text-slate-400">Nenhum produto cadastrado ainda.</p>';
       return;
     }
     container.innerHTML = lista.map((p) => `
-      <label class="flex items-center gap-3 px-2 py-1.5 rounded hover:bg-gray-50 text-sm">
-        <input type="checkbox" data-id="${p.id}" ${selecionados.has(p.id) ? 'checked' : ''}>
-        <span class="font-mono-code text-xs">${p.codigo_completo}</span>
-        <span>${p.nome}</span>
+      <label class="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition hover:bg-slate-50">
+        <input type="checkbox" class="h-4 w-4 rounded border-slate-300 text-brand-500 focus:ring-brand-400" data-id="${escapeHtml(p.id)}" ${selecionados.has(p.id) ? 'checked' : ''}>
+        <span class="font-mono text-xs font-semibold text-slate-600">${escapeHtml(p.codigo_completo)}</span>
+        <span class="font-medium text-slate-900">${escapeHtml(p.nome)}</span>
       </label>
     `).join('');
 
@@ -77,27 +55,29 @@ document.addEventListener('DOMContentLoaded', async () => {
     const selecionadosProdutos = produtos.filter((p) => selecionados.has(p.id));
 
     if (selecionadosProdutos.length === 0) {
-      area.innerHTML = '<p class="text-sm text-gray-400 no-print">Selecione um ou mais produtos acima para pré-visualizar as etiquetas.</p>';
+      area.innerHTML = '<p class="text-sm text-slate-400 print:hidden">Selecione um ou mais produtos acima para pré-visualizar as etiquetas.</p>';
       return;
     }
 
     area.innerHTML = selecionadosProdutos.map((p, i) => `
-      <div class="etiqueta flex items-center gap-3">
+      <div class="flex w-[260px] break-inside-avoid items-center gap-3 rounded-lg border-2 border-dashed border-slate-400 bg-white p-2.5 print:shadow-none">
         <div id="etiqueta-qr-${i}"></div>
         <div class="min-w-0">
-          <p class="stamp-code text-xs">${p.codigo_completo}</p>
-          <p class="text-sm font-semibold leading-tight mt-1 truncate">${p.nome}</p>
-          <p class="text-xs text-gray-500 truncate">${p.localizacao || ''}</p>
+          <p class="inline-flex rotate-[-0.6deg] rounded border-2 border-slate-800 px-2 py-0.5 font-mono text-[10px] font-bold tracking-[0.12em]">${escapeHtml(p.codigo_completo)}</p>
+          <p class="text-sm font-semibold leading-tight mt-1 truncate">${escapeHtml(p.nome)}</p>
+          <p class="text-xs text-gray-500 truncate">${escapeHtml(p.localizacao || '')}</p>
         </div>
       </div>
     `).join('');
 
     selecionadosProdutos.forEach((p, i) => {
       try {
-        QRCode.toCanvas(document.createElement('canvas'), p.codigo_completo, { width: 70, margin: 0 }, (err, canvas) => {
-          if (!err && document.getElementById(`etiqueta-qr-${i}`)) {
-            document.getElementById(`etiqueta-qr-${i}`).appendChild(canvas);
-          }
+        const destino = document.getElementById(`etiqueta-qr-${i}`);
+        new QRCode(destino, {
+          text: p.codigo_completo,
+          width: 70,
+          height: 70,
+          correctLevel: QRCode.CorrectLevel.M
         });
       } catch (err) {
         console.error('Erro ao gerar QR Code para etiqueta:', err);

@@ -26,29 +26,29 @@ document.addEventListener('DOMContentLoaded', async () => {
       document.getElementById('msg-vazio-baixo').classList.remove('hidden');
     } else {
       tabelaBaixo.innerHTML = baixoEstoque.map((p) => `
-        <tr class="row-baixo-estoque border-b last:border-0">
-          <td class="py-2 pr-3 font-mono-code">${p.codigo_completo}</td>
-          <td class="py-2 pr-3">${p.nome}</td>
-          <td class="py-2 pr-3 text-gray-500">${p.localizacao || '—'}</td>
-          <td class="py-2 pr-3"><span class="badge-baixo px-2 py-0.5 rounded text-xs">${p.quantidade}</span></td>
-          <td class="py-2 pr-3 text-gray-500">${p.estoque_minimo}</td>
+        <tr class="border-b border-slate-100 bg-red-50/50 transition hover:bg-red-50 last:border-0">
+          <td class="py-3 pr-4 font-mono text-xs font-semibold text-slate-700">${escapeHtml(p.codigo_completo)}</td>
+          <td class="py-3 pr-4 font-medium text-slate-900">${escapeHtml(p.nome)}</td>
+          <td class="py-3 pr-4 text-slate-500">${escapeHtml(p.localizacao || '—')}</td>
+          <td class="py-3 pr-4"><span class="rounded-full border border-red-200 bg-red-100 px-2.5 py-1 text-xs font-bold text-red-700">${p.quantidade}</span></td>
+          <td class="py-3 pr-4 text-slate-500">${p.estoque_minimo}</td>
         </tr>
       `).join('');
     }
 
     const tabelaMov = document.getElementById('tabela-ultimas-mov');
     tabelaMov.innerHTML = movimentacoes.slice(0, 10).map((m) => `
-      <tr class="border-b last:border-0">
-        <td class="py-2 pr-3 text-gray-500">${new Date(m.created_at).toLocaleString('pt-BR')}</td>
+      <tr class="border-b border-slate-100 transition hover:bg-slate-50 last:border-0">
+        <td class="py-3 pr-4 whitespace-nowrap text-slate-500">${new Date(m.created_at).toLocaleString('pt-BR')}</td>
         <td class="py-2 pr-3">
-          <span class="px-2 py-0.5 rounded text-xs font-semibold ${m.tipo === 'entrada' ? 'badge-ok' : 'badge-baixo'}">
+          <span class="rounded-full border px-2.5 py-1 text-xs font-bold ${m.tipo === 'entrada' ? 'border-emerald-200 bg-emerald-50 text-emerald-700' : 'border-red-200 bg-red-50 text-red-700'}">
             ${m.tipo === 'entrada' ? '↓ Entrada' : '↑ Saída'}
           </span>
         </td>
-        <td class="py-2 pr-3 font-mono-code">${m.produtos?.codigo_completo || '—'}</td>
-        <td class="py-2 pr-3">${m.produtos?.nome || '—'}</td>
+        <td class="py-3 pr-4 font-mono text-xs font-semibold">${escapeHtml(m.produtos?.codigo_completo || '—')}</td>
+        <td class="py-3 pr-4 font-medium text-slate-900">${escapeHtml(m.produtos?.nome || '—')}</td>
         <td class="py-2 pr-3">${m.quantidade}</td>
-        <td class="py-2 pr-3">${m.responsavel}</td>
+        <td class="py-2 pr-3">${escapeHtml(m.responsavel)}</td>
       </tr>
     `).join('') || '<tr><td colspan="6" class="py-6 text-center text-gray-400">Nenhuma movimentação registrada ainda.</td></tr>';
   } catch (err) {
